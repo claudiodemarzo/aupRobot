@@ -10,6 +10,7 @@ import java.io.File;
 public class AupRobot extends TelegramLongPollingBot {
 
     private final String[] bannedWords = {"chat.whatsapp.com"};
+    private final String[] adminIDs = {"205308699", "399858060"};
 
     @Override
     public String getBotUsername() {
@@ -21,7 +22,7 @@ public class AupRobot extends TelegramLongPollingBot {
         try {
             Scanner s = new Scanner(new File("token.txt"));
             String token = s.nextLine();
-            if(token.isEmpty()){
+            if (token.isEmpty()) {
                 System.err.println("Errore durante la lettura del token");
                 System.exit(-1);
             }
@@ -34,24 +35,33 @@ public class AupRobot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if(update.hasMessage()){
+        System.out.println(update.toString());
+        if (update.hasMessage()) {
             String message = update.getMessage().getText();
             int messageID = update.getMessage().getMessageId();
-            long chatID = update.getMessage().getChatId();
-            if(checkBannedWords(message)){
-                try {
-                    execute(new DeleteMessage(""+chatID, messageID));
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
+            String chatID = "" + update.getMessage().getChatId();
+            String userID = "" + update.getMessage().getFrom().getId();
+            if(!isAdmin(userID)) {
+                if (checkBannedWords(message)) {
+                    try {
+                        execute(new DeleteMessage(chatID, messageID));
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                    //}
                 }
             }
         }
     }
 
     private boolean checkBannedWords(String message) {
-        for(String s : bannedWords){
-            if(message.toLowerCase().contains(s.toLowerCase())) return true;
+        for (String s : bannedWords) {
+            if (message.toLowerCase().contains(s.toLowerCase())) return true;
         }
+        return false;
+    }
+    private boolean isAdmin(String id){
+        for (String s : adminIDs) if(id.equalsIgnoreCase(s)) return true;
         return false;
     }
 }
