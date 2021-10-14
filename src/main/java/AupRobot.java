@@ -9,7 +9,7 @@ import java.io.File;
 
 public class AupRobot extends TelegramLongPollingBot {
 
-    private final String[] bannedWords = {"chat.whatsapp.com"};
+    private final String[] bannedWords = {"chat.whatsapp.com", "t.me/friendd_it_bot"};
     private final String[] adminIDs = {"205308699", "399858060", "211257255", "1083185376", "120165672", "852402119", "869495414", "1279505788", "183350229", "456967399", "1240827364", "345762113", "1625643261", "1598042032", "534668906", "874311009"};
 
     @Override
