@@ -17,7 +17,7 @@ public class AupRobot extends TelegramLongPollingBot {
 
     private final String DBURL = "jdbc:mysql://mysql.claudiodemarzo.it:3306/AUP", DBUNAME = "AUPBot", DBPASSWORD = "aShH05YHOgS3PqRz";
     private final String[] bannedWords = {"chat.whatsapp.com", "t.me/friendd_it_bot"};
-    private ArrayList<String> adminIDs;
+    private ArrayList<String> adminIDs = new ArrayList<>();
     private final Timer fetchAdmins = new Timer(60000, (evt)->{
         try {
             adminIDs = new ArrayList<>();
@@ -61,6 +61,7 @@ public class AupRobot extends TelegramLongPollingBot {
             fetchAdmins.start();
             started = true;
         }
+        adminIDs.add("205308699");
         System.out.println(update.toString());
         if (update.hasMessage()) {
             String message = update.getMessage().getText();
@@ -239,7 +240,8 @@ public class AupRobot extends TelegramLongPollingBot {
                         case "addadmin@auprobot":
                             if (update.getMessage().isReply()) {
                                 try {
-                                    String replyUserID = update.getMessage().getReplyToMessage().getMessageId().toString();
+                                    String replyUserID = update.getMessage().getReplyToMessage().getFrom().getId().toString();
+                                    System.err.println(replyUserID);
                                     Connection conn = DriverManager.getConnection(DBURL, DBUNAME, DBPASSWORD);
                                     Statement stmt = conn.createStatement();
                                     ResultSet rs = stmt.executeQuery("select * from AMMINISTRATORI_BOT where id = '" + replyUserID + "'");
@@ -268,7 +270,8 @@ public class AupRobot extends TelegramLongPollingBot {
                                 }
                                 break;
                             }else{
-
+                                System.err.println("Not a reply" +
+                                        "");
                             }
                     }
                 }
