@@ -61,7 +61,6 @@ public class AupRobot extends TelegramLongPollingBot {
             fetchAdmins.start();
             started = true;
         }
-        adminIDs.add("205308699");
         System.out.println(update.toString());
         if (update.hasMessage()) {
             String message = update.getMessage().getText();
