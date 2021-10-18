@@ -18,7 +18,7 @@ public class AupRobot extends TelegramLongPollingBot {
     private final String DBURL = "jdbc:mysql://mysql.claudiodemarzo.it:3306/AUP", DBUNAME = "AUPBot", DBPASSWORD = "aShH05YHOgS3PqRz";
     private final String[] bannedWords = {"chat.whatsapp.com", "t.me/friendd_it_bot"};
     private ArrayList<String> adminIDs = new ArrayList<>();
-    private final Timer fetchAdmins = new Timer(60000, (evt)->{
+    private final Runnable fetchAdmins = ()->{
         try {
             adminIDs = new ArrayList<>();
             Connection sql = DriverManager.getConnection(DBURL, DBUNAME, DBPASSWORD);
@@ -31,7 +31,7 @@ public class AupRobot extends TelegramLongPollingBot {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    });
+    };
     private boolean started = false;
 
     @Override
@@ -57,12 +57,9 @@ public class AupRobot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if(!started){
-            fetchAdmins.start();
-            started = true;
-        }
         System.out.println(update.toString());
         if (update.hasMessage()) {
+            fetchAdmins.run();
             String message = update.getMessage().getText();
             int messageID = update.getMessage().getMessageId();
             String chatID = "" + update.getMessage().getChatId();
