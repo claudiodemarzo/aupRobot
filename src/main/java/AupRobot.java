@@ -14,7 +14,7 @@ import java.util.StringTokenizer;
 
 public class AupRobot extends TelegramLongPollingBot {
 
-    private final String DBURL = "jdbc:mysql://mysql.claudiodemarzo.it:3306/AUP", DBUNAME = "AUPBot", DBPASSWORD = "aShH05YHOgS3PqRz";
+    private final String DBURL = "jdbc:mariadb://aup.it:3306/nusgudpi_auprobot", DBUNAME = "nusgudpi_auprobot", DBPASSWORD = "taMUD-}EE_s=";
     private final String[] bannedWords = {"chat.whatsapp.com", "t.me/friendd_it_bot"};
     private ArrayList<String> adminIDs = new ArrayList<>();
     private Connection sqlConnection;
