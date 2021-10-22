@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.FileNotFoundException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.util.StringTokenizer;
@@ -15,7 +16,30 @@ public class AupRobot extends TelegramLongPollingBot {
 
     private final String DBURL = "jdbc:mysql://mysql.claudiodemarzo.it:3306/AUP", DBUNAME = "AUPBot", DBPASSWORD = "aShH05YHOgS3PqRz";
     private final String[] bannedWords = {"chat.whatsapp.com", "t.me/friendd_it_bot"};
-    private final String[] adminIDs = {"688063133", "185661462", "1621213292", "587672766", "205308699", "666443068", "686166086", "910648476", "1266641875", "257747122", "116578608", "567650860", "399858060", "211257255", "1083185376", "120165672", "852402119", "869495414", "1279505788", "183350229", "456967399", "1240827364", "345762113", "1625643261", "1598042032", "534668906", "874311009"};
+    private ArrayList<String> adminIDs = new ArrayList<>();
+    private Connection sqlConnection;
+
+    {
+        try {
+            sqlConnection = DriverManager.getConnection(DBURL, DBUNAME, DBPASSWORD);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private final Runnable fetchAdmins = ()->{
+        try {
+            adminIDs = new ArrayList<>();
+            Statement stmt = sqlConnection.createStatement();
+            ResultSet rs = stmt.executeQuery("select id from AMMINISTRATORI_BOT");
+            while(rs.next()){
+                adminIDs.add(rs.getString("id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    };
+    private boolean started = false;
 
     @Override
     public String getBotUsername() {
@@ -42,6 +66,7 @@ public class AupRobot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         System.out.println(update.toString());
         if (update.hasMessage()) {
+            fetchAdmins.run();
             String message = update.getMessage().getText();
             int messageID = update.getMessage().getMessageId();
             String chatID = "" + update.getMessage().getChatId();
@@ -96,7 +121,6 @@ public class AupRobot extends TelegramLongPollingBot {
                                     }
                                 } else {
                                     try {
-                                        Connection sqlConnection = DriverManager.getConnection(DBURL, DBUNAME, DBPASSWORD);
                                         Statement stmt;
                                         ResultSet rs;
                                         String tmp;
@@ -214,6 +238,42 @@ public class AupRobot extends TelegramLongPollingBot {
                                     }
                                 }
                             break;
+                        case "addadmin":
+                        case "addadmin@auprobot":
+                            if (update.getMessage().isReply()) {
+                                try {
+                                    String replyUserID = update.getMessage().getReplyToMessage().getFrom().getId().toString();
+                                    System.err.println(replyUserID);
+                                    Statement stmt = sqlConnection.createStatement();
+                                    ResultSet rs = stmt.executeQuery("select * from AMMINISTRATORI_BOT where id = '" + replyUserID + "'");
+                                    boolean found = false;
+                                    while (rs.next()) {
+                                        if (rs.getString("id").equalsIgnoreCase(replyUserID)) found = true;
+                                    }
+                                    if (found) {
+                                        SendMessage sd = new SendMessage();
+                                        sd.setChatId(chatID);
+                                        sd.setText("Questo utente è già amministratore!");
+                                        sd.setReplyToMessageId(messageID);
+                                        sd.setParseMode(ParseMode.HTML);
+                                        execute(sd);
+                                    } else {
+                                        stmt.executeUpdate("insert into AMMINISTRATORI_BOT values ('" + replyUserID + "')");
+                                        SendMessage sd = new SendMessage();
+                                        sd.setChatId(chatID);
+                                        sd.setText("Amministratore aggiunto!");
+                                        sd.setReplyToMessageId(messageID);
+                                        sd.setParseMode(ParseMode.HTML);
+                                        execute(sd);
+                                    }
+                                } catch (SQLException | TelegramApiException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                            }else{
+                                System.err.println("Not a reply" +
+                                        "");
+                            }
                     }
                 }
             }
