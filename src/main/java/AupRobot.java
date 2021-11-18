@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.util.StringTokenizer;
+import javax.swing.Timer;
 
 public class AupRobot extends TelegramLongPollingBot {
 
@@ -19,13 +20,17 @@ public class AupRobot extends TelegramLongPollingBot {
     private ArrayList<String> adminIDs = new ArrayList<>();
     private Connection sqlConnection;
 
-    {
-        try {
+  private final Runnable updateConnection = ()->{
+    try {
             sqlConnection = DriverManager.getConnection(DBURL, DBUNAME, DBPASSWORD);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
+  }
+
+  private final Timer timer = new Timer(60000, (evt) -> {
+      updateConnection.run();
+    });
 
     private final Runnable fetchAdmins = ()->{
         try {
@@ -48,6 +53,11 @@ public class AupRobot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
+      if(!started){
+        updateConnection.run();
+        timer.start();
+        started = true;
+      }
         try {
             Scanner s = new Scanner(new File("token.txt"));
             String token = s.nextLine();
