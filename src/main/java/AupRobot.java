@@ -1,31 +1,35 @@
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.sql.Date;
+import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 public class AupRobot extends TelegramLongPollingBot {
 
-    /*private final String DBURL = "jdbc:mariadb://aup.it:3306/nusgudpi_auprobot", DBUNAME = "nusgudpi_auprobot", DBPASSWORD = "taMUD-}EE_s=";
-    */private final String[] bannedWords = {"chat.whatsapp.com", "t.me/friendd_it_bot", "#vivilocosi", "#vivilocosì", "vivilocosi", "vivilocosì"};
-    /*private ArrayList<String> adminIDs = new ArrayList<>();
-    private Connection sqlConnection;*/
+    private final String DBURL = "jdbc:mariadb://localhost:3306/nusgudpi_auprobot", DBUNAME = "nusgudpi_auprobot", DBPASSWORD = "taMUD-}EE_s=";
+    private final String[] bannedWords = {"chat.whatsapp.com", "t.me/friendd_it_bot", "#vivilocosi", "#vivilocosì", "vivilocosi", "vivilocosì"};
+    private ArrayList<String> adminIDs = new ArrayList<>();
+    private Connection sqlConnection;
 
-    /*{
+    {
         try {
             sqlConnection = DriverManager.getConnection(DBURL, DBUNAME, DBPASSWORD);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }*/
+    }
 
-    /*private final Runnable fetchAdmins = ()->{
+    private final Runnable fetchAdmins = ()->{
         try {
             adminIDs = new ArrayList<>();
             Statement stmt = sqlConnection.createStatement();
@@ -37,7 +41,7 @@ public class AupRobot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     };
-    private boolean started = false;*/
+    private boolean started = false;
 
     @Override
     public String getBotUsername() {
@@ -63,7 +67,7 @@ public class AupRobot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage() != null) {
-            //fetchAdmins.run();
+            fetchAdmins.run();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
             GregorianCalendar gc = new GregorianCalendar();
             gc.setLenient(true);
@@ -74,7 +78,7 @@ public class AupRobot extends TelegramLongPollingBot {
             String userID = "" + update.getMessage().getFrom().getId();
             Date messageDate = new Date((long)update.getMessage().getDate()*1000);
             System.out.println("Processed @ ["+date+"] Received @ ["+sdf.format(messageDate)+"] Processing message: "+update.getMessage().getFrom().getFirstName() + " "+update.getMessage().getFrom().getLastName() + "@"+update.getMessage().getChat().getTitle()+" : "+update.getMessage().getText());
-            /*if (!isAdmin(userID)) {*/
+            if (!isAdmin(userID)) {
                 if (checkBannedWords(message)) {
                     try {
                         execute(new DeleteMessage(chatID, messageID));
@@ -83,11 +87,11 @@ public class AupRobot extends TelegramLongPollingBot {
                     }
                     //}
                 }
-            /*} else {
+            } else {
                 String[] arguments = null;
                 boolean hasArgs = false;
                 if (message.startsWith("/")) {        //is a command
-                    /*System.out.println("Command recognized");
+                    System.out.println("Command recognized");
                     StringTokenizer st = new StringTokenizer(message.substring(1), " ");
 
                     if (st.countTokens() > 1) {     //args check
@@ -107,7 +111,7 @@ public class AupRobot extends TelegramLongPollingBot {
                         System.err.println("[DEBUG] Command '" + command + "' recognized. Printing arguments");
                         for (int i = 0; i < arguments.length; i++) System.err.println(arguments[i]);
                     }
-                    /*switch (command.toLowerCase()) {
+                    switch (command.toLowerCase()) {
                         case "mention":
                         case "mention@auprobot":
                             if (chatID.equalsIgnoreCase("-1001739793923"))
@@ -279,7 +283,7 @@ public class AupRobot extends TelegramLongPollingBot {
                             }
                     }
                 }
-            }*/
+            }
         }
     }
 
@@ -290,8 +294,8 @@ public class AupRobot extends TelegramLongPollingBot {
         return false;
     }
 
-    /*private boolean isAdmin(String id) {
+    private boolean isAdmin(String id) {
         for (String s : adminIDs) if (id.equalsIgnoreCase(s)) return true;
         return false;
-    }*/
+    }
 }
